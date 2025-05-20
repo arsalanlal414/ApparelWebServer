@@ -29,6 +29,14 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: 'usd',
     },
+    billingAddress: {
+      line1: String,
+      line2: String,
+      city: String,
+      state: String,
+      postal_code: String,
+      country: String
+    },
     status: {
       type: String,
       enum: ['succeeded', 'failed', 'pending', 'paid', 'open', 'unpaid', 'canceled'],

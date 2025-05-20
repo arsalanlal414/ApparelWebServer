@@ -1,132 +1,3 @@
-// // routes/stripeWebhook.js
-// import express from 'express';
-// import { updateSubscriptionStatus } from '../services/stripeService.js';
-// import Stripe from 'stripe';
-
-
-// const router = express.Router();
-
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-//   apiVersion: '2022-11-15',
-// });
-
-// // Stripe webhook secret
-// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-// router.post('/', express.raw({ type: 'application/json' }), (req, res) => {
-//   const sig = req.headers['stripe-signature'];
-//   let event;
-//   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
-
-//   try {
-//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//   } catch (err) {
-//     console.error("Webhook signature verification failed.", err.message);
-//     return res.status(400).send(`Webhook Error: ${err.message}`);
-//   }
-
-//   const data = event.data.object;
-
-//   switch (event.type) {
-//     case 'checkout.session.completed':
-//       console.log("✅ Checkout session completed:", event.data);
-//       // Grant access / store subscription
-//       break;
-
-//     case 'invoice.paid':
-//       console.log("✅ Invoice paid:", event.data);
-//       // Continue subscription, mark payment complete
-//       break;
-
-//     case 'invoice.payment_failed':
-//       console.warn("❌ Invoice payment failed:", event.data);
-//       // Notify user, retry logic
-//       break;
-
-//     case 'customer.subscription.updated':
-//       console.log("🔄 Subscription updated:", event.data);
-//       // Update plan level
-//       break;
-
-//     case 'customer.subscription.deleted':
-//       console.log("🗑️ Subscription cancelled:", event.data);
-//       // Revoke access
-//       break;
-
-//     case 'payment_intent.payment_failed':
-//       console.warn("❌ Payment intent failed:", event.data);
-//       break;
-
-//     default:
-//       console.log(`ℹ️ Unhandled event: ${event.type}`);
-//   }
-
-//   res.status(200).send("Received");
-// });
-
-// export default router;
-
-
-
-
-// // routes/stripeWebhook.js
-// import express from 'express';
-// import Stripe from 'stripe';
-// import { updateSubscriptionStatus } from '../services/stripeService.js';
-
-// const router = express.Router();
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' });
-// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-// router.post('/', express.raw({ type: 'application/json' }), async (req, res) => {
-//   const sig = req.headers['stripe-signature'];
-//   let event;
-
-//   try {
-//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//   } catch (err) {
-//     console.error("Webhook signature verification failed:", err.message);
-//     return res.status(400).send(`Webhook Error: ${err.message}`);
-//   }
-
-//   const data = event.data.object;
-
-//   switch (event.type) {
-//     case 'checkout.session.completed':
-//       console.log("✅ Checkout session completed:", data);
-//       // Optionally update user subscription details here if you want
-//       break;
-//     case 'invoice.paid':
-//       console.log("✅ Invoice paid:", data);
-//       break;
-//     case 'invoice.payment_failed':
-//       console.warn("❌ Invoice payment failed:", data);
-//       break;
-//     case 'customer.subscription.updated':
-//       console.log("🔄 Subscription updated:", data);
-//       updateSubscriptionStatus(data.id, data.status);
-//       break;
-//     case 'customer.subscription.deleted':
-//       console.log("🗑️ Subscription cancelled:", data);
-//       updateSubscriptionStatus(data.id, data.status);
-//       break;
-//     case 'customer.subscription.updated':
-//       console.log("🔄 Subscription updated:", event.data.object);
-//       // Extract subscription info and update user record accordingly
-//       await updateSubscriptionStatus(event.data.object.id, event.data.object.status);
-//       break;
-//     default:
-//       console.log(`ℹ️ Unhandled event type: ${event.type}`);
-//   }
-
-//   res.status(200).send("Received");
-// });
-
-// export default router;
-
-
-
-
 import express from 'express';
 import Stripe from 'stripe';
 import { updateSubscriptionStatus } from '../services/stripeService.js';
@@ -159,6 +30,7 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
       console.log("✅ Checkout session completed:", event.data.object);
       // Update user subscription here if needed by retrieving session.subscription
       break;
+
     case 'invoice.paid':
       console.log("✅ Invoice paid:", event.data.object);
 
@@ -167,6 +39,8 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
 
       console.log("test user: ", user)
       if (user) {
+
+        const customer = await stripe.customers.retrieve(paymentInvoiceData.customer);
         await Payment.create({
           user: user._id,
           stripeCustomerId: paymentInvoiceData.customer,
@@ -178,6 +52,14 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
           status: paymentInvoiceData.status,
           description: paymentInvoiceData.description || 'Stripe invoice payment',
           receiptUrl: paymentInvoiceData.hosted_invoice_url,
+          billingAddress: customer.address || paymentInvoiceData.customer_address || {
+            line1: '',
+            line2: '',
+            city: '',
+            state: '',
+            postal_code: '',
+            country: ''
+          },
           paymentMethod: 'card', // or use: data.payment_method_types[0]
         });
       }

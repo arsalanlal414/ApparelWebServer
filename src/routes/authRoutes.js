@@ -19,30 +19,35 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 
 // Password Reset Routes
-router.post('/reset-password/request', requestPasswordReset);
-router.post('/reset-password/verify', verifyResetCode);
-router.post('/reset-password/reset', resetPassword);
+router.post('/request-reset-code', requestPasswordReset);
+router.post('/verify-reset-code', verifyResetCode);
+router.post('/reset-password', resetPassword);
 router.put('/verify-account', verifyAccount);
 
 router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email']
 }));
 
-router.get('/google/callback',
-  passport.authenticate('google', {
-    failureRedirect: '/login',
-    session: false, // disable session if you're using JWT
-  }),
-  (req, res) => {
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: false }, (err, user, info) => {
+    if (err?.message === 'LOCAL_ACCOUNT_EXISTS') {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=account-exists`);
+    }
+
+    if (!user) {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=authentication-failed`);
+    }
+
+    // User authenticated successfully
     const token = jwt.sign(
-      { id: req.user._id, role: req.user.role },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
-    res.redirect(`http://localhost:5173/create?token=${token}`);
-  }
-);
+    res.redirect(`${process.env.CLIENT_URL}/oauth/callback?token=${token}`);
+  })(req, res, next);
+});
 
 // Redirect to Facebook
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));

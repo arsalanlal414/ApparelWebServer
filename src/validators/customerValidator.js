@@ -137,3 +137,16 @@ export const updateCustomerAdminSchema = Joi.object({
   }).optional(),
 });
 
+export const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string()
+    .min(8)
+    .message('New password must be at least 8 characters long')
+    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'))
+    .message('New password must contain uppercase, lowercase, and number')
+    .required(),
+  confirmPassword: Joi.string()
+    .valid(Joi.ref('newPassword'))
+    .required()
+    .messages({ 'any.only': 'Passwords do not match' }),
+});

@@ -8,6 +8,7 @@ import {
   disableAccount,
   // removeAvatar,
   requestPasswordReset,
+  profileSettings,
 } from '../controllers/customerController.js';
 import { upload } from '../middlewares/uploadMiddleware.js'; // Your file upload middleware
 import { adminOnly, protect } from '../middlewares/authMiddleware.js'; // Your JWT auth middleware
@@ -21,5 +22,6 @@ router.post('/reset', protect, requestPasswordReset);
 router.put('/password', protect, changePassword);
 router.put('/preferences', protect, updatePreferences);
 router.put('/billing', protect, updateBillingInfo);
+router.get('/profile', protect, profileSettings);
 
 export default router;

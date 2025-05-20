@@ -8,7 +8,7 @@ dotenv.config();
 passport.use(new FacebookStrategy({
   clientID: process.env.FB_CLIENT_ID,
   clientSecret: process.env.FB_CLIENT_SECRET,
-  callbackURL: 'http://localhost:5000/api/auth/facebook/callback',
+  callbackURL: 'http://localhost:5173/login',
   profileFields: ['id', 'emails', 'name', 'picture.type(large)']
 }, async (accessToken, refreshToken, profile, done) => {
   try {

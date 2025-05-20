@@ -19,17 +19,17 @@ export const protect = async (req, res, next) => {
       const user = await User.findById(decoded.id).select('-password');
 
       if (!user) {
-        return res.status(401).json({ success: false, msg: 'User not found' });
+        return res.status(401).json({ success: false, message: 'User not found' });
       }
 
       req.user = user;
       next();
     } else {
-      return res.status(401).json({ success: false, msg: 'Not authorized, no token' });
+      return res.status(401).json({ success: false, message: 'Not authorized, no token' });
     }
   } catch (error) {
     console.error('Auth error:', error.message);
-    return res.status(401).json({ success: false, msg: 'Not authorized, token failed' });
+    return res.status(401).json({ success: false, message: 'Not authorized, token failed' });
   }
 };
 

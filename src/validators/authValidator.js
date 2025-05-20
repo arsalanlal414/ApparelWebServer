@@ -6,7 +6,7 @@ export const registerSchema = Joi.object({
   password: Joi.string()
     .min(8)
     .max(128)
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$')) 
+    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'))
     .message('Password must contain uppercase, lowercase and number')
     .required(),
   role: Joi.string().valid('admin', 'customer').optional(),
@@ -58,3 +58,4 @@ export const updatePasswordSchema = Joi.object({
     .required()
     .messages({ 'any.only': 'Passwords do not match' }),
 });
+

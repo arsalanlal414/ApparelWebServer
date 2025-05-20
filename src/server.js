@@ -9,11 +9,12 @@ import User from './models/User.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.use(session({ secret: 'secret*123@nogoarea', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 app.use(passport.session());
+
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
